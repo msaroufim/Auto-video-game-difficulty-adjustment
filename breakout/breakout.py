@@ -4,6 +4,7 @@ pygame.init()
 screen = pygame.display.set_mode([650,480])
 black = [0, 0, 0]
 
+#Brick class to be put into brick array, has position and whether it is a powerup
 class Brick(pygame.sprite.Sprite):
     image = None
 
@@ -24,6 +25,7 @@ class Brick(pygame.sprite.Sprite):
         self.y = y
         self.rect.topleft = (self.x, self.y)
 
+#Bricks class to load each Brick into an array, clear bricks when state ends
 class Bricks:
     def __init__(self, brick_level_count=4, powerup_prob=0.05):
         #self.brick_level_count = brick_level_count
@@ -121,6 +123,7 @@ while running:
             state.addCloseCall()
         state.ball_speed_y = -state.ball_speed_y
 
+    #Destruction of bricks, implementation of exploding brick
     for row_index in range(0, len(brick_array)):
         for column_index in range(0, len(brick_array[row_index])):
             brick = brick_array[row_index][column_index]
