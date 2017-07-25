@@ -1,4 +1,4 @@
-import pygame, sys, random
+import pygame, random
 from GameState import GameState
 pygame.init()
 screen = pygame.display.set_mode([650,480])
@@ -91,6 +91,7 @@ while running:
         #ball_speed_y = -ball_speed_y
         state.resetVars()
         if state.gameLives==0:
+            state.getBricksArray(bricks.brick_array)
             state.writeVars()
             bricks.clearBricks()
             state = GameState()
@@ -160,6 +161,7 @@ while running:
     #update the entire display
     pygame.display.update()
     if state.score == 39:
+        state.getBricksArray(bricks.brick_array)
         state.writeVars()
         bricks.clearBricks()
         state = GameState()

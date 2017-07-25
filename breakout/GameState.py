@@ -1,3 +1,4 @@
+import pickle
 class GameState:
     def __init__(self,gameLives=3, hitCount=0, ball_x=50, ball_y=250,
                  ball_radius=10, ball_color=[220,50,50], ball_speed_x=3, ball_speed_y=5,
@@ -50,22 +51,40 @@ class GameState:
     def addHit(self):
         self.hitCount+=1
 
+    def getBricksArray(self, bricks_array):
+        self.bricks_array = bricks_array
+
     def writeVars(self):
         stateFile = open("GameStates.txt", "a")
         stateFile.write("----------------------------------------------------\n")
         stateFile.write("Lives left: " + str(self.gameLives) + "\n")
-        stateFile.write("Number of ball hits: " + str(self.hitCount) + "\n")
+        #stateFile.write("Number of ball hits: " + str(self.hitCount) + "\n")
         stateFile.write("Blocks broken: " + str(self.score) + "\n")
         stateFile.write("Current powerup probability: " + str(self.powerup_prob) + "\n")
-        stateFile.write("Lives left: " + str(self.gameLives) + "\n")
-        stateFile.write("Ball speed in x direction: " + str(self.ball_speed_x) + "\n")
-        stateFile.write("Ball speed in y direction: " + str(self.ball_speed_y) + "\n")
+        stateFile.write("Ball speed in x direction: " + str(abs(self.ball_speed_x)) + "\n")
+        stateFile.write("Ball speed in y direction: " + str(abs(self.ball_speed_y)) + "\n")
         stateFile.write("CLOSE CALLS: " + str(self.closeCalls) + "\n")
         stateFile.close()
+        endState = EndState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x), abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
+        endState.pickle()
 
     def writeEndSession(self):
         stateFile = open("GameStates.txt", "a")
         stateFile.write("\n---------------END OF SESSION--------------------\n\n")
         stateFile.close()
 
+class EndState:
+    def __init__(self, gameLives, score, powerup_prob, ball_speed_x, ball_speed_y, closeCalls, bricks_array):
+        self.gameLives = gameLives
+        self.score = score
+        self.powerup_prob = powerup_prob
+        self.ball_speed_x = ball_speed_x
+        self.ball_speed_y = ball_speed_y
+        self.closeCalls = closeCalls
+        self.bricks_array = bricks_array
 
+    def pickle(self):
+        f = open("Pickles.txt", "a")
+        pickle.dump(self, f)
+        f.write("\n")
+        f.close()
