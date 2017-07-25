@@ -74,6 +74,7 @@ while running:
             coordinates = pygame.mouse.get_pos() #gives (x,y) coordinates
             if ((coordinates[0]-state.paddle_width/2) != state.paddle_x):
                 #means action has occured, save state
+                state.getBricksArray(Bricks.brick_array)
                 currState = state.stateSnapshot()
                 currState.pickle()
 

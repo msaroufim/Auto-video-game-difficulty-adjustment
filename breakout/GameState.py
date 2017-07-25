@@ -26,8 +26,8 @@ class GameState:
 
         self.max_ball_speed_x = 10
         self.max_ball_speed_y = 15
-        self.min_ball_speed_x = 0
-        self.min_ball_speed_y = 0
+        self.min_ball_speed_x = 0.5
+        self.min_ball_speed_y = 0.5
 
     def resetVars(self):
         self.ball_x = 50
