@@ -67,8 +67,7 @@ class GameState:
         stateFile.close()
 
     def stateSnapshot(self):
-        currState = CurrState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x),
-                              abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
+        currState = CurrState(self.gameLives, self.score, self.powerup_prob, ball_speed_x, self.ball_speed_y, self.closeCalls, self.bricks_array)
         return currState
 
     def writeEndSession(self):
