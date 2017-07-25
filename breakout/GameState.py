@@ -65,15 +65,18 @@ class GameState:
         stateFile.write("Ball speed in y direction: " + str(abs(self.ball_speed_y)) + "\n")
         stateFile.write("CLOSE CALLS: " + str(self.closeCalls) + "\n")
         stateFile.close()
-        endState = EndState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x), abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
-        endState.pickle()
+
+    def stateSnapshot(self):
+        currState = CurrState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x),
+                              abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
+        return currState
 
     def writeEndSession(self):
         stateFile = open("GameStates.txt", "a")
         stateFile.write("\n---------------END OF SESSION--------------------\n\n")
         stateFile.close()
 
-class EndState:
+class CurrState:
     def __init__(self, gameLives, score, powerup_prob, ball_speed_x, ball_speed_y, closeCalls, bricks_array):
         self.gameLives = gameLives
         self.score = score

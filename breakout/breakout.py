@@ -72,6 +72,11 @@ while running:
 
         if event.type == pygame.MOUSEMOTION:
             coordinates = pygame.mouse.get_pos() #gives (x,y) coordinates
+            if ((coordinates[0]-state.paddle_width/2) != state.paddle_x):
+                #means action has occured, save state
+                currState = state.stateSnapshot()
+                currState.pickle()
+
             state.paddle_x = coordinates[0] - state.paddle_width/2 #sets the paddle_x variable to the first item in coordinates
             if state.paddle_x < 0:
                 state.paddle_x = 0
