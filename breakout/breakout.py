@@ -25,7 +25,7 @@ class Brick(pygame.sprite.Sprite):
         self.rect.topleft = (self.x, self.y)
 
 class Bricks:
-    def __init__(self, brick_level_count=4, powerup_prob = 0.05):
+    def __init__(self, brick_level_count=4, powerup_prob=0.05):
         #self.brick_level_count = brick_level_count
 
         self.brick_array = []
@@ -42,6 +42,9 @@ class Bricks:
                 bricks_rows.append(brick)
             self.brick_array.append(bricks_rows)
 
+    def clearBricks(self):
+        for row in self.brick_array:
+            del row[:]
 
 state = GameState()
 
@@ -62,6 +65,7 @@ while running:
     for event in pygame.event.get():
         #check if you've exited the game
         if event.type == pygame.QUIT:
+            state.writeEndSession()
             running = False
 
         if event.type == pygame.MOUSEMOTION:
@@ -86,6 +90,12 @@ while running:
     if state.ball_y > screen.get_height() - state.ball_radius:
         #ball_speed_y = -ball_speed_y
         state.resetVars()
+        if state.gameLives==0:
+            state.writeVars()
+            bricks.clearBricks()
+            state = GameState()
+            bricks = Bricks()
+            brick_array = bricks.brick_array
         #do something different
     #check if the ball hit the top of the screen
     if state.ball_y < state.ball_radius:
@@ -100,10 +110,15 @@ while running:
     #create imaginary rectangles around ball and paddle
     ball_rect = pygame.Rect(state.ball_x-state.ball_radius, state.ball_y-state.ball_radius, state.ball_radius*2,state.ball_radius*2) #circles are measured from the center, so have to subtract 1 radius from the x and y
     paddle_rect = pygame.Rect(state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height)
+    paddle_left_end_rec = pygame.Rect(state.paddle_x, state.paddle_y, 3, state.paddle_height)
+    paddle_right_end_rec = pygame.Rect((state.paddle_x+state.paddle_width)-3, state.paddle_y, 3, state.paddle_height)
+
     #see if the rectangles overlap
     if ball_rect.colliderect(paddle_rect):
+        state.addHit()
+        if ball_rect.colliderect(paddle_left_end_rec) or ball_rect.colliderect(paddle_right_end_rec):
+            state.addCloseCall()
         state.ball_speed_y = -state.ball_speed_y
-        state.hitCount+=1
 
     for row_index in range(0, len(brick_array)):
         for column_index in range(0, len(brick_array[row_index])):
@@ -145,7 +160,8 @@ while running:
     #update the entire display
     pygame.display.update()
     if state.score == 39:
-        running = False
-
-
-pygame.quit()
+        state.writeVars()
+        bricks.clearBricks()
+        state = GameState()
+        bricks = Bricks()
+        brick_array = bricks.brick_array
