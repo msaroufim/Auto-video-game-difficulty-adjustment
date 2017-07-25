@@ -71,7 +71,7 @@ movedDirection = "none"
 paddleBallCollision = 0
 ballBrickCollision = 0
 while running:
-    clock.tick(30)
+    clock.tick(60)
     for event in pygame.event.get():
         #check if you've exited the game
         if event.type == pygame.QUIT:
@@ -104,7 +104,6 @@ while running:
     state.ball_x = state.ball_x + state.ball_speed_x
     #check if the ball is off the bottom of the screen
     if state.ball_y > screen.get_height() - state.ball_radius:
-        #ball_speed_y = -ball_speed_y
         state.resetVars()
         if state.gameLives==0:
             state.getBricksArray(bricks.brick_array)
@@ -114,7 +113,6 @@ while running:
             bricks = Bricks()
             bricks.loadBricks()
             brick_array = bricks.brick_array
-        #do something different
     #check if the ball hit the top of the screen
     if state.ball_y < state.ball_radius:
         state.ball_speed_y = -state.ball_speed_y
