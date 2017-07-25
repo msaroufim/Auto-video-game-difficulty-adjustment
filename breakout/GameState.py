@@ -66,7 +66,7 @@ class GameState:
         stateFile.write("CLOSE CALLS: " + str(self.closeCalls) + "\n")
         stateFile.close()
 
-    def stateSnapshot(self):
+    def stateSnapshot(self, action):
         currState = CurrState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x),
                               abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
         return currState
