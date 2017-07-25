@@ -1,18 +1,20 @@
 #code doesn't run yet, still doing some rearchitecting
+#Tensorflow makes it tricky to encapsulate in classes because variables are only defined within a session - TODO: Need to figure out how to make this work
 
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
 
-def set_net_architecture():
-  #Neural net architecture
-  n_inputs = TBD
-  n_hidden = 4
-  n_outputs = 1
+# if __name__ == "__main__":
+#   net = set_net_architecture()
+#   train_network(net) -> checkpoints state in a file
+#   foreach obs:
+#     return best_action = infer(obs)
+#   raise Exception("Not implemented")
+
+def set_net_architecture(n_inputs=4,n_hidden=4,n_outputs=1,learning_rate=0.01):
   initializer = tf.contrib.layers.variance_scaling_initializer()
 
-  #Neural network
-  learning_rate = 0.01
-
+  #Neural net architecture
   X = tf.placeholder(tf.float32, shape=[None, n_inputs])
   hidden = fully_connected(X, n_hidden, activation_fn=tf.nn.elu,  weights_initializer=initializer)
   logits = fully_connected(hidden, n_outputs, activation_fn=None, weights_initializer=initializer)
@@ -40,13 +42,9 @@ def set_net_architecture():
 
   init = tf.global_variables_initializer()
   saver = tf.train.Saver()
+  return init
 
-def train_network():
-  n_iterations = 250
-  n_max_steps = 1000
-  n_games_per_update = 10
-  save_iterations = 10
-  discount_rate = 0.95
+def train_network(network, n_iterations=250, n_max_steps=1000, n_games_per_update=10, save_iterations=10, discount_rate=0.95):
 
   with tf.Session() as sess:
     init.run()
@@ -59,16 +57,20 @@ def train_network():
 
         #Need to implement
         obs = ENVIRONMENT RESET
+        #Need to implement
+
         for step in range(n_max_steps):
           action_val, gradients_val = sess.run(
             [action, gradients],
             feed_dict={X: obs.reshape(1,n_inputs)})
 
           #Need to implement
-          obs, reward, dpme, info = env.step(action)
+          obs, reward, done, info = env.step(action)
+          #Need to implement
+
           current_rewards.append(reward)
           current_gradients.append(gradients_val)
-          if done:
+          if done: #Need to implement
             break
           all_rewards.append(current_rewards)
           all_gradients.append(current_gradients)
@@ -84,17 +86,18 @@ def train_network():
         feed_dict[grad_placeholder] = mean_gradients
         sess.run(training_op, feed_dict=feed_dict)
 
-
-        saver.save(sess, "my-test-policy",global_step=save_iterations, write_meta_graph=False)
+        if step % save_iterations == 0:
+          saver.save(sess, "my-test-policy",global_step=save_iterations, write_meta_graph=False)
 
 
 def infer(obs,model_name):
-  with tf.Session() as sess:
-    new_saver = tf.train.import_meta_graph('my_test_model-1000.meta')
-    new_saver.restore(sess, tf.train.latest_checkpoint('./'))
+  # with tf.Session() as sess:
+  #   new_saver = tf.train.import_meta_graph('my_test_model-1000.meta')
+  #   new_saver.restore(sess, tf.train.latest_checkpoint('./'))
+  raise Exception("Not implemented")
 
 
-def infer_from_all_policies(obs, policies=['1','10','1000'...]): #pull these from checkpointed files
+def infer_from_all_policies(obs, policies=['1','10','1000'...]):
   raise Exception("Not implemented")
 
 def discount_rewards(rewards, discount_rate):
