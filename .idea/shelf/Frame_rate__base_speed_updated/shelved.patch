@@ -1,0 +1,569 @@
+Index: breakout/GameState.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pickle\nclass GameState:\n    def __init__(self,gameLives=3, hitCount=0, ball_x=50, ball_y=250,\n                 ball_radius=10, ball_color=[220,50,50], ball_speed_x=5, ball_speed_y=7,\n                 paddle_x=20, paddle_y=450, paddle_width=60, paddle_height=20, paddle_color=[20,180,180], paddle_speed=10,\n                 powerup_prob = 0.05,\n                 score=0,\n                 closeCalls=0):\n        self.gameLives = gameLives\n        self.hitCount = hitCount\n        self.ball_x = ball_x\n        self.ball_y = ball_y\n        self.ball_radius = ball_radius\n        self.ball_color = ball_color\n        self.ball_speed_x = ball_speed_x\n        self.ball_speed_y = ball_speed_y\n        self.paddle_x = paddle_x\n        self.paddle_y = paddle_y\n        self.paddle_width = paddle_width\n        self.paddle_height = paddle_height\n        self.paddle_color = paddle_color\n        self.paddle_speed = paddle_speed\n        self.powerup_prob = powerup_prob\n        self.score = score\n        self.closeCalls = closeCalls\n\n        self.max_ball_speed_x = 15\n        self.max_ball_speed_y = 21\n        self.min_ball_speed_x = 2\n        self.min_ball_speed_y = 3\n\n    def resetVars(self):\n        self.ball_x = 50\n        self.ball_y = 250\n        self.gameLives -= 1\n\n        # adjust difficulty\n        if self.hitCount >= 5:\n            self.ball_speed_x = min(self.ball_speed_x + 0.5, self.max_ball_speed_x)\n            self.ball_speed_y = min(self.ball_speed_y + 0.5, self.max_ball_speed_y)\n            #change powerup spawn rate\n        else:\n            self.ball_speed_x = max(self.ball_speed_x-0.5, self.min_ball_speed_x)\n            self.ball_speed_y = max(self.ball_speed_y-0.5, self.min_ball_speed_y)\n\n        self.hitCount = 0\n\n    def addCloseCall(self):\n        self.closeCalls+=1\n\n    def addHit(self):\n        self.hitCount+=1\n\n    def getBricksArray(self, bricks_array):\n        self.bricks_array = bricks_array\n\n    def writeVars(self):\n        stateFile = open(\"GameStates.txt\", \"a\")\n        stateFile.write(\"----------------------------------------------------\\n\")\n        stateFile.write(\"Lives left: \" + str(self.gameLives) + \"\\n\")\n        #stateFile.write(\"Number of ball hits: \" + str(self.hitCount) + \"\\n\")\n        stateFile.write(\"Blocks broken: \" + str(self.score) + \"\\n\")\n        stateFile.write(\"Current powerup probability: \" + str(self.powerup_prob) + \"\\n\")\n        stateFile.write(\"Ball speed in x direction: \" + str(abs(self.ball_speed_x)) + \"\\n\")\n        stateFile.write(\"Ball speed in y direction: \" + str(abs(self.ball_speed_y)) + \"\\n\")\n        stateFile.write(\"CLOSE CALLS: \" + str(self.closeCalls) + \"\\n\")\n        stateFile.close()\n\n    def stateSnapshot(self, action):\n        currState = CurrState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x),\n                              abs(self.ball_speed_y), self.closeCalls, self.bricks_array)\n        return currState\n\n    def writeEndSession(self):\n        stateFile = open(\"GameStates.txt\", \"a\")\n        stateFile.write(\"\\n---------------END OF SESSION--------------------\\n\\n\")\n        stateFile.close()\n\nclass CurrState:\n    def __init__(self, gameLives, score, powerup_prob, ball_speed_x, ball_speed_y, closeCalls, bricks_array):\n        self.gameLives = gameLives\n        self.score = score\n        self.powerup_prob = powerup_prob\n        self.ball_speed_x = ball_speed_x\n        self.ball_speed_y = ball_speed_y\n        self.closeCalls = closeCalls\n        self.bricks_array = bricks_array\n\n    def pickle(self):\n        f = open(\"Pickles.txt\", \"a\")\n        pickle.dump(self, f)\n        f.write(\"\\n\")\n        f.close()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- breakout/GameState.py	(revision 7bfda54a868b088bfd42e5ef54f186b260dac766)
++++ breakout/GameState.py	(revision )
+@@ -5,7 +5,7 @@
+                  paddle_x=20, paddle_y=450, paddle_width=60, paddle_height=20, paddle_color=[20,180,180], paddle_speed=10,
+                  powerup_prob = 0.05,
+                  score=0,
+-                 closeCalls=0):
++                 closeCalls=0, action=None):
+         self.gameLives = gameLives
+         self.hitCount = hitCount
+         self.ball_x = ball_x
+@@ -67,8 +67,7 @@
+         stateFile.close()
+ 
+     def stateSnapshot(self, action):
+-        currState = CurrState(self.gameLives, self.score, self.powerup_prob, abs(self.ball_speed_x),
+-                              abs(self.ball_speed_y), self.closeCalls, self.bricks_array)
++        currState = GameState(self, action)
+         return currState
+ 
+     def writeEndSession(self):
+@@ -76,16 +75,6 @@
+         stateFile.write("\n---------------END OF SESSION--------------------\n\n")
+         stateFile.close()
+ 
+-class CurrState:
+-    def __init__(self, gameLives, score, powerup_prob, ball_speed_x, ball_speed_y, closeCalls, bricks_array):
+-        self.gameLives = gameLives
+-        self.score = score
+-        self.powerup_prob = powerup_prob
+-        self.ball_speed_x = ball_speed_x
+-        self.ball_speed_y = ball_speed_y
+-        self.closeCalls = closeCalls
+-        self.bricks_array = bricks_array
+-
+     def pickle(self):
+         f = open("Pickles.txt", "a")
+         pickle.dump(self, f)
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"3de1e47c-652d-41a7-82ee-fac6923a0f91\" name=\"Default\" comment=\"\">\n      <change type=\"MODIFICATION\" beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" />\n      <change type=\"MODIFICATION\" beforePath=\"$PROJECT_DIR$/breakout/GameState.py\" afterPath=\"$PROJECT_DIR$/breakout/GameState.py\" />\n      <change type=\"MODIFICATION\" beforePath=\"$PROJECT_DIR$/breakout/breakout.py\" afterPath=\"$PROJECT_DIR$/breakout/breakout.py\" />\n    </list>\n    <option name=\"EXCLUDED_CONVERTED_TO_IGNORED\" value=\"true\" />\n    <option name=\"TRACKING_ENABLED\" value=\"true\" />\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"CoverageDataManager\">\n    <SUITE FILE_PATH=\"coverage/Auto_video_game_difficulty_adjustment$breakout.coverage\" NAME=\"breakout Coverage Results\" MODIFIED=\"1501014474971\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"true\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$/breakout\" />\n  </component>\n  <component name=\"ExecutionTargetManager\" SELECTED_TARGET=\"default_target\" />\n  <component name=\"FileEditorManager\">\n    <leaf>\n      <file leaf-file-name=\"breakout.py\" pinned=\"false\" current-in-tab=\"true\">\n        <entry file=\"file://$PROJECT_DIR$/breakout/breakout.py\">\n          <provider selected=\"true\" editor-type-id=\"text-editor\">\n            <state relative-caret-position=\"142\">\n              <caret line=\"102\" column=\"52\" lean-forward=\"true\" selection-start-line=\"102\" selection-start-column=\"52\" selection-end-line=\"102\" selection-end-column=\"52\" />\n              <folding>\n                <element signature=\"e#0#21#0\" expanded=\"true\" />\n              </folding>\n            </state>\n          </provider>\n        </entry>\n      </file>\n      <file leaf-file-name=\"GameState.py\" pinned=\"false\" current-in-tab=\"false\">\n        <entry file=\"file://$PROJECT_DIR$/breakout/GameState.py\">\n          <provider selected=\"true\" editor-type-id=\"text-editor\">\n            <state relative-caret-position=\"459\">\n              <caret line=\"27\" column=\"34\" lean-forward=\"false\" selection-start-line=\"27\" selection-start-column=\"34\" selection-end-line=\"27\" selection-end-column=\"34\" />\n              <folding />\n            </state>\n          </provider>\n        </entry>\n      </file>\n      <file leaf-file-name=\"Action.py\" pinned=\"false\" current-in-tab=\"false\">\n        <entry file=\"file://$PROJECT_DIR$/Action.py\">\n          <provider selected=\"true\" editor-type-id=\"text-editor\">\n            <state relative-caret-position=\"17\">\n              <caret line=\"1\" column=\"8\" lean-forward=\"false\" selection-start-line=\"1\" selection-start-column=\"8\" selection-end-line=\"1\" selection-end-column=\"8\" />\n              <folding />\n            </state>\n          </provider>\n        </entry>\n      </file>\n    </leaf>\n  </component>\n  <component name=\"FileTemplateManagerImpl\">\n    <option name=\"RECENT_TEMPLATES\">\n      <list>\n        <option value=\"Python Script\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"FindInProjectRecents\">\n    <findStrings>\n      <find>prob</find>\n      <find>runnin</find>\n      <find>rect</find>\n      <find>lives</find>\n      <find>wri</find>\n      <find>run</find>\n      <find>bricks</find>\n      <find>state.hit</find>\n      <find>mouse</find>\n      <find>coord</find>\n      <find>Bricks()</find>\n      <find>speed</find>\n    </findStrings>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"IdeDocumentHistory\">\n    <option name=\"CHANGED_PATHS\">\n      <list>\n        <option value=\"$PROJECT_DIR$/Action.py\" />\n        <option value=\"$PROJECT_DIR$/breakout/GameState.py\" />\n        <option value=\"$PROJECT_DIR$/breakout/breakout.py\" />\n      </list>\n    </option>\n  </component>\n  <component name=\"JsBuildToolGruntFileManager\" detection-done=\"true\" sorting=\"DEFINITION_ORDER\" />\n  <component name=\"JsBuildToolPackageJson\" detection-done=\"true\" sorting=\"DEFINITION_ORDER\" />\n  <component name=\"JsGulpfileManager\">\n    <detection-done>true</detection-done>\n    <sorting>DEFINITION_ORDER</sorting>\n  </component>\n  <component name=\"ProjectFrameBounds\">\n    <option name=\"x\" value=\"-8\" />\n    <option name=\"y\" value=\"-8\" />\n    <option name=\"width\" value=\"1382\" />\n    <option name=\"height\" value=\"744\" />\n  </component>\n  <component name=\"ProjectView\">\n    <navigator currentView=\"ProjectPane\" proportions=\"\" version=\"1\">\n      <flattenPackages />\n      <showMembers />\n      <showModules />\n      <showLibraryContents />\n      <hideEmptyPackages />\n      <abbreviatePackageNames />\n      <autoscrollToSource />\n      <autoscrollFromSource />\n      <sortByType />\n      <manualOrder />\n      <foldersAlwaysOnTop value=\"true\" />\n    </navigator>\n    <panes>\n      <pane id=\"ProjectPane\">\n        <subPane>\n          <PATH>\n            <PATH_ELEMENT>\n              <option name=\"myItemId\" value=\"Auto-video-game-difficulty-adjustment\" />\n              <option name=\"myItemType\" value=\"com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode\" />\n            </PATH_ELEMENT>\n            <PATH_ELEMENT>\n              <option name=\"myItemId\" value=\"Auto-video-game-difficulty-adjustment\" />\n              <option name=\"myItemType\" value=\"com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode\" />\n            </PATH_ELEMENT>\n          </PATH>\n          <PATH>\n            <PATH_ELEMENT>\n              <option name=\"myItemId\" value=\"Auto-video-game-difficulty-adjustment\" />\n              <option name=\"myItemType\" value=\"com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode\" />\n            </PATH_ELEMENT>\n            <PATH_ELEMENT>\n              <option name=\"myItemId\" value=\"Auto-video-game-difficulty-adjustment\" />\n              <option name=\"myItemType\" value=\"com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode\" />\n            </PATH_ELEMENT>\n            <PATH_ELEMENT>\n              <option name=\"myItemId\" value=\"breakout\" />\n              <option name=\"myItemType\" value=\"com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode\" />\n            </PATH_ELEMENT>\n          </PATH>\n        </subPane>\n      </pane>\n      <pane id=\"Scope\" />\n      <pane id=\"Scratches\" />\n    </panes>\n  </component>\n  <component name=\"PropertiesComponent\">\n    <property name=\"WebServerToolWindowFactoryState\" value=\"false\" />\n    <property name=\"last_opened_file_path\" value=\"$PROJECT_DIR$\" />\n    <property name=\"settings.editor.selected.configurable\" value=\"com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable\" />\n  </component>\n  <component name=\"RunDashboard\">\n    <option name=\"ruleStates\">\n      <list>\n        <RuleState>\n          <option name=\"name\" value=\"ConfigurationTypeDashboardGroupingRule\" />\n        </RuleState>\n        <RuleState>\n          <option name=\"name\" value=\"StatusDashboardGroupingRule\" />\n        </RuleState>\n      </list>\n    </option>\n  </component>\n  <component name=\"RunManager\" selected=\"Python.breakout\">\n    <configuration default=\"false\" name=\"breakout\" type=\"PythonConfigurationType\" factoryName=\"Python\" temporary=\"true\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$/breakout\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/breakout/breakout.py\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"DjangoTestsConfigurationType\" factoryName=\"Django tests\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"TARGET\" value=\"\" />\n      <option name=\"SETTINGS_FILE\" value=\"\" />\n      <option name=\"CUSTOM_SETTINGS\" value=\"false\" />\n      <option name=\"USE_OPTIONS\" value=\"false\" />\n      <option name=\"OPTIONS\" value=\"\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"JavaScriptTestRunnerJest\" factoryName=\"Jest\">\n      <node-interpreter value=\"project\" />\n      <working-dir value=\"\" />\n      <envs />\n      <scope-kind value=\"ALL\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"JavaScriptTestRunnerProtractor\" factoryName=\"Protractor\">\n      <config-file value=\"\" />\n      <node-interpreter value=\"project\" />\n      <envs />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"JavascriptDebugType\" factoryName=\"JavaScript Debug\">\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"PyBehaveRunConfigurationType\" factoryName=\"Behave\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"ADDITIONAL_ARGS\" value=\"\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"PyLettuceRunConfigurationType\" factoryName=\"Lettuce\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"ADDITIONAL_ARGS\" value=\"\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"PythonConfigurationType\" factoryName=\"Python\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"Tox\" factoryName=\"Tox\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"js.build_tools.gulp\" factoryName=\"Gulp.js\">\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"js.build_tools.npm\" factoryName=\"npm\">\n      <command value=\"run\" />\n      <scripts />\n      <node-interpreter value=\"project\" />\n      <envs />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"tests\" factoryName=\"Doctests\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"\" />\n      <option name=\"CLASS_NAME\" value=\"\" />\n      <option name=\"METHOD_NAME\" value=\"\" />\n      <option name=\"FOLDER_NAME\" value=\"\" />\n      <option name=\"TEST_TYPE\" value=\"TEST_SCRIPT\" />\n      <option name=\"PATTERN\" value=\"\" />\n      <option name=\"USE_PATTERN\" value=\"false\" />\n      <method />\n    </configuration>\n    <configuration default=\"true\" type=\"tests\" factoryName=\"Unittests\">\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs />\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <module name=\"Auto-video-game-difficulty-adjustment\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" enabled=\"false\" sample_coverage=\"true\" runner=\"coverage.py\" />\n      <option name=\"_new_additionalArguments\" value=\"&quot;&quot;\" />\n      <option name=\"_new_target\" value=\"&quot;.&quot;\" />\n      <option name=\"_new_targetType\" value=\"&quot;PATH&quot;\" />\n      <method />\n    </configuration>\n    <list size=\"1\">\n      <item index=\"0\" class=\"java.lang.String\" itemvalue=\"Python.breakout\" />\n    </list>\n    <recent_temporary>\n      <list size=\"1\">\n        <item index=\"0\" class=\"java.lang.String\" itemvalue=\"Python.breakout\" />\n      </list>\n    </recent_temporary>\n  </component>\n  <component name=\"ShelveChangesManager\" show_recycled=\"false\">\n    <option name=\"remove_strategy\" value=\"false\" />\n  </component>\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"3de1e47c-652d-41a7-82ee-fac6923a0f91\" name=\"Default\" comment=\"\" />\n      <created>1500934537627</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1500934537627</updated>\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"State snapshot every frame uses action class\">\n      <created>1501013404185</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1501013404185</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"2\" />\n    <servers />\n  </component>\n  <component name=\"ToolWindowManager\">\n    <frame x=\"-8\" y=\"-8\" width=\"1382\" height=\"744\" extended-state=\"6\" />\n    <editor active=\"true\" />\n    <layout>\n      <window_info id=\"TODO\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"6\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Event Log\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"true\" content_ui=\"tabs\" />\n      <window_info id=\"Version Control\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Python Console\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Run\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"true\" show_stripe_button=\"true\" weight=\"0.3280757\" sideWeight=\"0.5\" order=\"2\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Terminal\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Project\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.50073206\" sideWeight=\"0.5\" order=\"0\" side_tool=\"false\" content_ui=\"combo\" />\n      <window_info id=\"Database\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Find\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.329653\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Structure\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Favorites\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"true\" content_ui=\"tabs\" />\n      <window_info id=\"Debug\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.39905363\" sideWeight=\"0.5\" order=\"3\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Data View\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"-1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Cvs\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"4\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Hierarchy\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"2\" side_tool=\"false\" content_ui=\"combo\" />\n      <window_info id=\"Message\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"0\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Commander\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.4\" sideWeight=\"0.5\" order=\"0\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Inspection\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.4\" sideWeight=\"0.5\" order=\"5\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Ant Build\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"tabs\" />\n    </layout>\n    <layout-to-restore>\n      <window_info id=\"TODO\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"10\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Cvs\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"8\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Message\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"4\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Commander\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.4\" sideWeight=\"0.5\" order=\"2\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Event Log\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"0\" side_tool=\"true\" content_ui=\"tabs\" />\n      <window_info id=\"Inspection\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.4\" sideWeight=\"0.5\" order=\"9\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Version Control\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Python Console\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"2\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Run\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"true\" show_stripe_button=\"true\" weight=\"0.3280757\" sideWeight=\"0.5\" order=\"6\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Terminal\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"3\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Project\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.50073206\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"combo\" />\n      <window_info id=\"Hierarchy\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"4\" side_tool=\"false\" content_ui=\"combo\" />\n      <window_info id=\"Database\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"0\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Find\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.329653\" sideWeight=\"0.5\" order=\"5\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Structure\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"2\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Ant Build\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.25\" sideWeight=\"0.5\" order=\"3\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Favorites\" active=\"false\" anchor=\"left\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"0\" side_tool=\"true\" content_ui=\"tabs\" />\n      <window_info id=\"Debug\" active=\"false\" anchor=\"bottom\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.39905363\" sideWeight=\"0.5\" order=\"7\" side_tool=\"false\" content_ui=\"tabs\" />\n      <window_info id=\"Data View\" active=\"false\" anchor=\"right\" auto_hide=\"false\" internal_type=\"DOCKED\" type=\"DOCKED\" visible=\"false\" show_stripe_button=\"true\" weight=\"0.33\" sideWeight=\"0.5\" order=\"1\" side_tool=\"false\" content_ui=\"tabs\" />\n    </layout-to-restore>\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"processedProjectFiles\" value=\"true\" />\n  </component>\n  <component name=\"VcsContentAnnotationSettings\">\n    <option name=\"myLimit\" value=\"2678400000\" />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"State snapshot every frame uses action class\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"State snapshot every frame uses action class\" />\n  </component>\n  <component name=\"XDebuggerManager\">\n    <breakpoint-manager>\n      <option name=\"time\" value=\"3\" />\n    </breakpoint-manager>\n    <watches-manager />\n  </component>\n  <component name=\"editorHistoryManager\">\n    <entry file=\"file://$PROJECT_DIR$/breakout/brick.png\">\n      <provider selected=\"true\" editor-type-id=\"images\">\n        <state />\n      </provider>\n    </entry>\n    <entry file=\"file://C:/Python27/Lib/pickle.py\">\n      <provider selected=\"true\" editor-type-id=\"text-editor\">\n        <state relative-caret-position=\"132\">\n          <caret line=\"1369\" column=\"0\" lean-forward=\"false\" selection-start-line=\"1369\" selection-start-column=\"0\" selection-end-line=\"1369\" selection-end-column=\"0\" />\n          <folding />\n        </state>\n      </provider>\n    </entry>\n    <entry file=\"file://$PROJECT_DIR$/Action.py\">\n      <provider selected=\"true\" editor-type-id=\"text-editor\">\n        <state relative-caret-position=\"17\">\n          <caret line=\"1\" column=\"8\" lean-forward=\"false\" selection-start-line=\"1\" selection-start-column=\"8\" selection-end-line=\"1\" selection-end-column=\"8\" />\n          <folding />\n        </state>\n      </provider>\n    </entry>\n    <entry file=\"file://$PROJECT_DIR$/breakout/GameState.py\">\n      <provider selected=\"true\" editor-type-id=\"text-editor\">\n        <state relative-caret-position=\"459\">\n          <caret line=\"27\" column=\"34\" lean-forward=\"false\" selection-start-line=\"27\" selection-start-column=\"34\" selection-end-line=\"27\" selection-end-column=\"34\" />\n          <folding />\n        </state>\n      </provider>\n    </entry>\n    <entry file=\"file://$PROJECT_DIR$/breakout/breakout.py\">\n      <provider selected=\"true\" editor-type-id=\"text-editor\">\n        <state relative-caret-position=\"142\">\n          <caret line=\"102\" column=\"52\" lean-forward=\"true\" selection-start-line=\"102\" selection-start-column=\"52\" selection-end-line=\"102\" selection-end-column=\"52\" />\n          <folding>\n            <element signature=\"e#0#21#0\" expanded=\"true\" />\n          </folding>\n        </state>\n      </provider>\n    </entry>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/workspace.xml	(revision 7bfda54a868b088bfd42e5ef54f186b260dac766)
++++ .idea/workspace.xml	(revision )
+@@ -14,7 +14,7 @@
+     <option name="LAST_RESOLUTION" value="IGNORE" />
+   </component>
+   <component name="CoverageDataManager">
+-    <SUITE FILE_PATH="coverage/Auto_video_game_difficulty_adjustment$breakout.coverage" NAME="breakout Coverage Results" MODIFIED="1501014474971" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/breakout" />
++    <SUITE FILE_PATH="coverage/Auto_video_game_difficulty_adjustment$breakout.coverage" NAME="breakout Coverage Results" MODIFIED="1501016853445" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/breakout" />
+   </component>
+   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+   <component name="FileEditorManager">
+@@ -22,8 +22,8 @@
+       <file leaf-file-name="breakout.py" pinned="false" current-in-tab="true">
+         <entry file="file://$PROJECT_DIR$/breakout/breakout.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="142">
+-              <caret line="102" column="52" lean-forward="true" selection-start-line="102" selection-start-column="52" selection-end-line="102" selection-end-column="52" />
++            <state relative-caret-position="51">
++              <caret line="153" column="24" lean-forward="true" selection-start-line="153" selection-start-column="24" selection-end-line="153" selection-end-column="24" />
+               <folding>
+                 <element signature="e#0#21#0" expanded="true" />
+               </folding>
+@@ -34,8 +34,8 @@
+       <file leaf-file-name="GameState.py" pinned="false" current-in-tab="false">
+         <entry file="file://$PROJECT_DIR$/breakout/GameState.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="459">
+-              <caret line="27" column="34" lean-forward="false" selection-start-line="27" selection-start-column="34" selection-end-line="27" selection-end-column="34" />
++            <state relative-caret-position="587">
++              <caret line="81" column="17" lean-forward="false" selection-start-line="81" selection-start-column="17" selection-end-line="81" selection-end-column="17" />
+               <folding />
+             </state>
+           </provider>
+@@ -44,8 +44,8 @@
+       <file leaf-file-name="Action.py" pinned="false" current-in-tab="false">
+         <entry file="file://$PROJECT_DIR$/Action.py">
+           <provider selected="true" editor-type-id="text-editor">
+-            <state relative-caret-position="17">
+-              <caret line="1" column="8" lean-forward="false" selection-start-line="1" selection-start-column="8" selection-end-line="1" selection-end-column="8" />
++            <state relative-caret-position="34">
++              <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+               <folding />
+             </state>
+           </provider>
+@@ -82,8 +82,8 @@
+   <component name="IdeDocumentHistory">
+     <option name="CHANGED_PATHS">
+       <list>
+-        <option value="$PROJECT_DIR$/Action.py" />
+         <option value="$PROJECT_DIR$/breakout/GameState.py" />
++        <option value="$PROJECT_DIR$/Action.py" />
+         <option value="$PROJECT_DIR$/breakout/breakout.py" />
+       </list>
+     </option>
+@@ -151,6 +151,117 @@
+     <property name="WebServerToolWindowFactoryState" value="false" />
+     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
++    <property name="run.code.analysis.last.selected.profile" value="aDefault" />
++  </component>
++  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
++    <UpdatedFiles>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Updated from server" />
++        <option name="myStatusName" value="Changed on server" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="CHANGED_ON_SERVER" />
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Updated" />
++          <option name="myStatusName" value="Changed" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="UPDATED" />
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Created" />
++          <option name="myStatusName" value="Created" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="CREATED" />
++          <PATH vcs="Git" revision="">$PROJECT_DIR$/breakout/player.py</PATH>
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Deleted" />
++          <option name="myStatusName" value="Deleted" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="true" />
++          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
++        </FILE-GROUP>
++        <FILE-GROUP>
++          <option name="myUpdateName" value="Restored" />
++          <option name="myStatusName" value="Will be restored" />
++          <option name="mySupportsDeletion" value="false" />
++          <option name="myCanBeAbsent" value="false" />
++          <option name="myId" value="RESTORED" />
++        </FILE-GROUP>
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Modified" />
++        <option name="myStatusName" value="Modified" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MODIFIED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Skipped" />
++        <option name="myStatusName" value="Skipped" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="SKIPPED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with conflicts" />
++        <option name="myStatusName" value="Will be merged with conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_CONFLICTS" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with tree conflicts" />
++        <option name="myStatusName" value="Merged with tree conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged with property conflicts" />
++        <option name="myStatusName" value="Will be merged with property conflicts" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Merged" />
++        <option name="myStatusName" value="Will be merged" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="MERGED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Not in repository" />
++        <option name="myStatusName" value="Not in repository" />
++        <option name="mySupportsDeletion" value="true" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="UNKNOWN" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Locally added" />
++        <option name="myStatusName" value="Locally added" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="LOCALLY_ADDED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Locally removed" />
++        <option name="myStatusName" value="Locally removed" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="LOCALLY_REMOVED" />
++      </FILE-GROUP>
++      <FILE-GROUP>
++        <option name="myUpdateName" value="Switched" />
++        <option name="myStatusName" value="Switched" />
++        <option name="mySupportsDeletion" value="false" />
++        <option name="myCanBeAbsent" value="false" />
++        <option name="myId" value="SWITCHED" />
++      </FILE-GROUP>
++    </UpdatedFiles>
+   </component>
+   <component name="RunDashboard">
+     <option name="ruleStates">
+@@ -353,54 +464,40 @@
+       <option name="project" value="LOCAL" />
+       <updated>1501013404185</updated>
+     </task>
+-    <option name="localTasksCounter" value="2" />
++    <task id="LOCAL-00002" summary="Frame rate, base speed updated">
++      <created>1501014591755</created>
++      <option name="number" value="00002" />
++      <option name="presentableId" value="LOCAL-00002" />
++      <option name="project" value="LOCAL" />
++      <updated>1501014591755</updated>
++    </task>
++    <option name="localTasksCounter" value="3" />
+     <servers />
+   </component>
+   <component name="ToolWindowManager">
+     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+     <editor active="true" />
+     <layout>
+-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3280757" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.50073206" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329653" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39905363" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+-      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+-      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+-      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+-    </layout>
+-    <layout-to-restore>
+       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+-      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+-      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+-      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
+-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
++      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329653" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3280757" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
++      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3280757" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.50073206" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
+-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="combo" />
+-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
++      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329653" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
+       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39905363" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+-    </layout-to-restore>
++      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
++      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
++      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="combo" />
++      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
++      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
++      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
++      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
++    </layout>
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="processedProjectFiles" value="true" />
+@@ -410,11 +507,12 @@
+   </component>
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="State snapshot every frame uses action class" />
+-    <option name="LAST_COMMIT_MESSAGE" value="State snapshot every frame uses action class" />
++    <MESSAGE value="Frame rate, base speed updated" />
++    <option name="LAST_COMMIT_MESSAGE" value="Frame rate, base speed updated" />
+   </component>
+   <component name="XDebuggerManager">
+     <breakpoint-manager>
+-      <option name="time" value="3" />
++      <option name="time" value="5" />
+     </breakpoint-manager>
+     <watches-manager />
+   </component>
+@@ -434,24 +532,24 @@
+     </entry>
+     <entry file="file://$PROJECT_DIR$/Action.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="17">
+-          <caret line="1" column="8" lean-forward="false" selection-start-line="1" selection-start-column="8" selection-end-line="1" selection-end-column="8" />
++        <state relative-caret-position="34">
++          <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+           <folding />
+         </state>
+       </provider>
+     </entry>
+     <entry file="file://$PROJECT_DIR$/breakout/GameState.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="459">
+-          <caret line="27" column="34" lean-forward="false" selection-start-line="27" selection-start-column="34" selection-end-line="27" selection-end-column="34" />
++        <state relative-caret-position="587">
++          <caret line="81" column="17" lean-forward="false" selection-start-line="81" selection-start-column="17" selection-end-line="81" selection-end-column="17" />
+           <folding />
+         </state>
+       </provider>
+     </entry>
+     <entry file="file://$PROJECT_DIR$/breakout/breakout.py">
+       <provider selected="true" editor-type-id="text-editor">
+-        <state relative-caret-position="142">
+-          <caret line="102" column="52" lean-forward="true" selection-start-line="102" selection-start-column="52" selection-end-line="102" selection-end-column="52" />
++        <state relative-caret-position="51">
++          <caret line="153" column="24" lean-forward="true" selection-start-line="153" selection-start-column="24" selection-end-line="153" selection-end-column="24" />
+           <folding>
+             <element signature="e#0#21#0" expanded="true" />
+           </folding>
+Index: breakout/breakout.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pygame, random\nfrom GameState import GameState\nfrom Action import Action\npygame.init()\nscreen = pygame.display.set_mode([650,480])\nblack = [0, 0, 0]\n\n#Brick class to be put into brick array, has position and whether it is a powerup\nclass Brick(pygame.sprite.Sprite):\n    imageRef = None\n\n    def __init__(self, x, y,powerup=False):\n        pygame.sprite.Sprite.__init__(self)\n        self.powerup = powerup\n\n        if powerup:\n            Brick.imageRef = (\"Explode.png\")\n        else:\n            Brick.imageRef = (\"brick.png\")\n\n        self.imageRef = Brick.imageRef\n\n        # Make our top-left corner the passed-in location.\n        self.x = x\n        self.y = y\n        self.rect = pygame.Rect(self.x, self.y, 50, 16)\n        self.rect.topleft = (self.x, self.y)\n\n#Bricks class to load each Brick into an array, clear bricks when state ends\nclass Bricks:\n    def __init__(self, brick_level_count=4, powerup_prob=0.05):\n        self.brick_level_count = brick_level_count\n        self.powerup_prob = powerup_prob\n\n    def loadBricks(self):\n        self.brick_array = []\n        self.ispowerup = {}\n        for i in range(0, 13):\n            bricks_rows = []\n            for j in range(1, self.brick_level_count):\n                if (random.uniform(0, 1) < self.powerup_prob):\n                    brick = Brick(50 * i, 50 * j, powerup=True)\n                    self.ispowerup[brick] = True\n                else:\n                    brick = Brick(50 * i, 50 * j, powerup=False)\n                    self.ispowerup[brick] = False\n                bricks_rows.append(brick)\n            self.brick_array.append(bricks_rows)\n\n    def clearBricks(self):\n        for row in self.brick_array:\n            del row[:]\n\nstate = GameState()\n\n\nmyfont = pygame.font.SysFont(\"Arial\", 22)\n\nbricks = Bricks()\nbricks.loadBricks()\nbrick_array = bricks.brick_array\n\n#allows for holding of key\npygame.key.set_repeat(20, 20)\n\n\nclock = pygame.time.Clock()\nrunning = True\n#game loop\nmovedDirection = \"none\"\npaddleBallCollision = 0\nballBrickCollision = 0\nwhile running:\n    clock.tick(60)\n    for event in pygame.event.get():\n        #check if you've exited the game\n        if event.type == pygame.QUIT:\n            state.writeEndSession()\n            running = False\n\n        if event.type == pygame.MOUSEMOTION:\n            coordinates = pygame.mouse.get_pos() #gives (x,y) coordinates\n            if (coordinates[0]-state.paddle_width/2) != state.paddle_x:\n                if (coordinates[0]-state.paddle_width/2) < state.paddle_x:\n                    movedDirection = \"left\"\n                else:\n                    movedDirection = \"right\"\n\n            state.paddle_x = coordinates[0] - state.paddle_width/2 #sets the paddle_x variable to the first item in coordinates\n            if state.paddle_x < 0:\n                state.paddle_x = 0\n            if state.paddle_x > screen.get_width() - state.paddle_width:\n                state.paddle_x = screen.get_width() - state.paddle_width\n\n\n\n    #pause for 20 milliseconds\n    pygame.time.delay(20)\n    #make the screen completely white\n    screen.fill(black)\n\n    #move the ball\n    state.ball_y = state.ball_y + state.ball_speed_y\n    state.ball_x = state.ball_x + state.ball_speed_x\n    #check if the ball is off the bottom of the screen\n    if state.ball_y > screen.get_height() - state.ball_radius:\n        state.resetVars()\n        if state.gameLives==0:\n            state.getBricksArray(bricks.brick_array)\n            state.writeVars()\n            bricks.clearBricks()\n            state = GameState()\n            bricks = Bricks()\n            bricks.loadBricks()\n            brick_array = bricks.brick_array\n    #check if the ball hit the top of the screen\n    if state.ball_y < state.ball_radius:\n        state.ball_speed_y = -state.ball_speed_y\n    #check if the ball hit the left side of the screen\n    if state.ball_x < state.ball_radius:\n        state.ball_speed_x = -state.ball_speed_x\n    #check if the ball hit the right side of the screen\n    if state.ball_x > screen.get_width() - state.ball_radius:\n        state.ball_speed_x = -state.ball_speed_x\n\n    #create imaginary rectangles around ball and paddle\n    ball_rect = pygame.Rect(state.ball_x-state.ball_radius, state.ball_y-state.ball_radius, state.ball_radius*2,state.ball_radius*2) #circles are measured from the center, so have to subtract 1 radius from the x and y\n    paddle_rect = pygame.Rect(state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height)\n    paddle_left_end_rec = pygame.Rect(state.paddle_x, state.paddle_y, 3, state.paddle_height)\n    paddle_right_end_rec = pygame.Rect((state.paddle_x+state.paddle_width)-3, state.paddle_y, 3, state.paddle_height)\n\n    #see if the rectangles overlap\n    if ball_rect.colliderect(paddle_rect):\n        state.addHit()\n        paddleBallCollision = 1\n        if ball_rect.colliderect(paddle_left_end_rec) or ball_rect.colliderect(paddle_right_end_rec):\n            state.addCloseCall()\n        state.ball_speed_y = -state.ball_speed_y\n\n    #Destruction of bricks, implementation of exploding brick\n    for row_index in range(0, len(brick_array)):\n        for column_index in range(0, len(brick_array[row_index])):\n            brick = brick_array[row_index][column_index]\n            if brick != None and brick.rect.colliderect(ball_rect):\n                ballBrickCollision = 1\n                if brick.powerup:\n                    if brick_array[row_index][column_index] != None:\n                        brick_array[row_index][column_index] = None\n                        state.score += 1\n                    if row_index > 0 and brick_array[row_index-1][column_index] != None:\n                        brick_array[row_index-1][column_index] = None\n                        state.score += 1\n                    if row_index < 12 and brick_array[row_index+1][column_index] != None:\n                        brick_array[row_index+1][column_index] = None\n                        state.score += 1\n                    if column_index > 0 and brick_array[row_index][column_index-1] != None:\n                        brick_array[row_index][column_index-1] = None\n                        state.score += 1\n                    if column_index < 2 and brick_array[row_index][column_index+1] != None:\n                        brick_array[row_index][column_index+1] = None\n                        state.score += 1\n                else:\n                    state.score += 1\n                    brick_array[row_index][column_index] = None\n                state.ball_speed_y = - state.ball_speed_y\n\n\n    #draw everything on the screen\n    score_label = myfont.render(\"Score: \" + str(state.score), 1, pygame.color.THECOLORS['white'])\n    lives_label = myfont.render(\"Lives \" + str(state.gameLives), 1, pygame.color.THECOLORS['white'])\n    screen.blit(score_label, (5, 10))\n    screen.blit(lives_label, (200, 10))\n    for row in brick_array:\n        for brick in row:\n            if brick != None:\n                screen.blit(pygame.image.load(brick.imageRef), brick.rect)\n    pygame.draw.circle(screen, state.ball_color, [int(state.ball_x), int(state.ball_y)], state.ball_radius, 0)\n    pygame.draw.rect(screen, state.paddle_color, [state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height], 0)\n    #update the entire display\n    pygame.display.update()\n    if state.score == 39:\n        state.getBricksArray(bricks.brick_array)\n        state.writeVars()\n        bricks.clearBricks()\n        state = GameState()\n        bricks = Bricks()\n        bricks.loadBricks()\n        brick_array = bricks.brick_array\n\n    action = Action(movedDirection, paddleBallCollision, ballBrickCollision)\n    state.getBricksArray(brick_array)\n    currState = state.stateSnapshot(action)\n    currState.pickle()\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- breakout/breakout.py	(revision 7bfda54a868b088bfd42e5ef54f186b260dac766)
++++ breakout/breakout.py	(revision )
+@@ -70,38 +70,102 @@
+ movedDirection = "none"
+ paddleBallCollision = 0
+ ballBrickCollision = 0
+-while running:
+-    clock.tick(60)
+-    for event in pygame.event.get():
+-        #check if you've exited the game
+-        if event.type == pygame.QUIT:
+-            state.writeEndSession()
+-            running = False
+ 
+-        if event.type == pygame.MOUSEMOTION:
+-            coordinates = pygame.mouse.get_pos() #gives (x,y) coordinates
+-            if (coordinates[0]-state.paddle_width/2) != state.paddle_x:
+-                if (coordinates[0]-state.paddle_width/2) < state.paddle_x:
+-                    movedDirection = "left"
+-                else:
+-                    movedDirection = "right"
+ 
+-            state.paddle_x = coordinates[0] - state.paddle_width/2 #sets the paddle_x variable to the first item in coordinates
+-            if state.paddle_x < 0:
+-                state.paddle_x = 0
+-            if state.paddle_x > screen.get_width() - state.paddle_width:
+-                state.paddle_x = screen.get_width() - state.paddle_width
++
++#Method to update game based on the previous action
++def updateVars(state):
++    #PADDLE MOTION
++    if state.action.movedDirection != "none":
++        state.paddle_x = coordinates[0] - state.paddle_width / 2  # sets the paddle_x variable to the first item in coordinates
++
++        # PADDLE-BALL COLLISION
++        if state.action.paddleBallCollision == 1:
++            state.addHit()
++            if ball_rect.colliderect(paddle_left_end_rec) or ball_rect.colliderect(paddle_right_end_rec):
++                state.addCloseCall()
++            state.ball_speed_y = -state.ball_speed_y
++            state.action.paddleBallCollision = 0
++        else:
++            pass
++
++        # BALL-BRICK COLLISION
++        if state.action.ballBrickCollision == 1:
++            for row_index in range(0, len(state.bricks_array)):
++                for column_index in range(0, len(state.bricks_array[row_index])):
++                    brick = state.bricks_array[row_index][column_index]
++                    if brick != None: #and brick.rect.colliderect(ball_rect):
++                        if brick.powerup:
++                            if state.bricks_array[row_index][column_index] != None:
++                                state.bricks_array[row_index][column_index] = None
++                                state.score += 1
++                            if row_index > 0 and state.bricks_array[row_index - 1][column_index] != None:
++                                state.bricks_array[row_index - 1][column_index] = None
++                                state.score += 1
++                            if row_index < 12 and state.bricks_array[row_index + 1][column_index] != None:
++                                state.bricks_array[row_index + 1][column_index] = None
++                                state.score += 1
++                            if column_index > 0 and state.bricks_array[row_index][column_index - 1] != None:
++                                state.bricks_array[row_index][column_index - 1] = None
++                                state.score += 1
++                            if column_index < 2 and state.bricks_array[row_index][column_index + 1] != None:
++                                state.bricks_array[row_index][column_index + 1] = None
++                                state.score += 1
++                        else:
++                            state.score += 1
++                            state.bricks_array[row_index][column_index] = None
++                        state.ball_speed_y = - state.ball_speed_y
++            #state.action.ballBrickCollision = 0
++        else:
++            pass
++
++    #BALL MOTION
++    state.ball_y = state.ball_y + state.ball_speed_y
++    state.ball_x = state.ball_x + state.ball_speed_x
++
++    # create imaginary rectangles around ball and paddle
++    ball_rect = pygame.Rect(state.ball_x - state.ball_radius, state.ball_y - state.ball_radius, state.ball_radius * 2,
++                            state.ball_radius * 2)  # circles are measured from the center, so have to subtract 1 radius from the x and y
++    paddle_rect = pygame.Rect(state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height)
++    paddle_left_end_rec = pygame.Rect(state.paddle_x, state.paddle_y, 3, state.paddle_height)
++    paddle_right_end_rec = pygame.Rect((state.paddle_x + state.paddle_width) - 3, state.paddle_y, 3,
++                                       state.paddle_height)
++
++    # draw everything on the screen
++    score_label = myfont.render("Score: " + str(state.score), 1, pygame.color.THECOLORS['white'])
++    lives_label = myfont.render("Lives " + str(state.gameLives), 1, pygame.color.THECOLORS['white'])
++    screen.blit(score_label, (5, 10))
++    screen.blit(lives_label, (200, 10))
++    for row in brick_array:
++        for brick in row:
++            if brick != None:
++                screen.blit(pygame.image.load(brick.imageRef), brick.rect)
++    pygame.draw.circle(screen, state.ball_color, [int(state.ball_x), int(state.ball_y)], state.ball_radius, 0)
++    pygame.draw.rect(screen, state.paddle_color,
++                     [state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height], 0)
++    # update the entire display
++    pygame.display.update()
++
++    checkVars(state, ball_rect, paddle_left_end_rec, paddle_right_end_rec, paddle_rect, bricks)
++
++#Method to create new state and action based on current state conditions
++def checkVars(state, ball_rect, paddle_left_end_rec, paddle_right_end_rec, paddle_rect, bricks):
++    for row in bricks.brick_array:
++        for brick in row
++            if brick.rect
++
++
++
++
++
++
++    if state.paddle_x < 0:
++        state.paddle_x = 0
++    if state.paddle_x > screen.get_width() - state.paddle_width:
++        state.paddle_x = screen.get_width() - state.paddle_width
+ 
+ 
+ 
+-    #pause for 20 milliseconds
+-    pygame.time.delay(20)
+-    #make the screen completely white
+-    screen.fill(black)
+-
+-    #move the ball
+-    state.ball_y = state.ball_y + state.ball_speed_y
+-    state.ball_x = state.ball_x + state.ball_speed_x
+     #check if the ball is off the bottom of the screen
+     if state.ball_y > screen.get_height() - state.ball_radius:
+         state.resetVars()
+@@ -123,61 +187,36 @@
+     if state.ball_x > screen.get_width() - state.ball_radius:
+         state.ball_speed_x = -state.ball_speed_x
+ 
+-    #create imaginary rectangles around ball and paddle
+-    ball_rect = pygame.Rect(state.ball_x-state.ball_radius, state.ball_y-state.ball_radius, state.ball_radius*2,state.ball_radius*2) #circles are measured from the center, so have to subtract 1 radius from the x and y
+-    paddle_rect = pygame.Rect(state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height)
+-    paddle_left_end_rec = pygame.Rect(state.paddle_x, state.paddle_y, 3, state.paddle_height)
+-    paddle_right_end_rec = pygame.Rect((state.paddle_x+state.paddle_width)-3, state.paddle_y, 3, state.paddle_height)
+ 
+     #see if the rectangles overlap
+     if ball_rect.colliderect(paddle_rect):
+         state.addHit()
+-        paddleBallCollision = 1
++        state.paddleBallCollision = 1
+         if ball_rect.colliderect(paddle_left_end_rec) or ball_rect.colliderect(paddle_right_end_rec):
+             state.addCloseCall()
+         state.ball_speed_y = -state.ball_speed_y
+ 
+-    #Destruction of bricks, implementation of exploding brick
+-    for row_index in range(0, len(brick_array)):
+-        for column_index in range(0, len(brick_array[row_index])):
+-            brick = brick_array[row_index][column_index]
+-            if brick != None and brick.rect.colliderect(ball_rect):
+-                ballBrickCollision = 1
+-                if brick.powerup:
+-                    if brick_array[row_index][column_index] != None:
+-                        brick_array[row_index][column_index] = None
+-                        state.score += 1
+-                    if row_index > 0 and brick_array[row_index-1][column_index] != None:
+-                        brick_array[row_index-1][column_index] = None
+-                        state.score += 1
+-                    if row_index < 12 and brick_array[row_index+1][column_index] != None:
+-                        brick_array[row_index+1][column_index] = None
+-                        state.score += 1
+-                    if column_index > 0 and brick_array[row_index][column_index-1] != None:
+-                        brick_array[row_index][column_index-1] = None
+-                        state.score += 1
+-                    if column_index < 2 and brick_array[row_index][column_index+1] != None:
+-                        brick_array[row_index][column_index+1] = None
+-                        state.score += 1
++
++while running:
++    clock.tick(60)
++    screen.fill(black) # make the screen completely black
++    updateVars(state)
++
++    for event in pygame.event.get():
++        #check if you've exited the game
++        if event.type == pygame.QUIT:
++            state.writeEndSession()
++            running = False
++
++        if event.type == pygame.MOUSEMOTION:
++            coordinates = pygame.mouse.get_pos() #gives (x,y) coordinates
++            if (coordinates[0]-state.paddle_width/2) != state.paddle_x:
++                if (coordinates[0]-state.paddle_width/2) < state.paddle_x:
++                    movedDirection = "left"
+                 else:
+-                    state.score += 1
+-                    brick_array[row_index][column_index] = None
+-                state.ball_speed_y = - state.ball_speed_y
++                    movedDirection = "right"
+ 
+ 
+-    #draw everything on the screen
+-    score_label = myfont.render("Score: " + str(state.score), 1, pygame.color.THECOLORS['white'])
+-    lives_label = myfont.render("Lives " + str(state.gameLives), 1, pygame.color.THECOLORS['white'])
+-    screen.blit(score_label, (5, 10))
+-    screen.blit(lives_label, (200, 10))
+-    for row in brick_array:
+-        for brick in row:
+-            if brick != None:
+-                screen.blit(pygame.image.load(brick.imageRef), brick.rect)
+-    pygame.draw.circle(screen, state.ball_color, [int(state.ball_x), int(state.ball_y)], state.ball_radius, 0)
+-    pygame.draw.rect(screen, state.paddle_color, [state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height], 0)
+-    #update the entire display
+-    pygame.display.update()
+     if state.score == 39:
+         state.getBricksArray(bricks.brick_array)
+         state.writeVars()
+@@ -191,4 +230,3 @@
+     state.getBricksArray(brick_array)
+     currState = state.stateSnapshot(action)
+     currState.pickle()
+-

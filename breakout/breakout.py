@@ -66,10 +66,61 @@ pygame.key.set_repeat(20, 20)
 
 clock = pygame.time.Clock()
 running = True
-#game loop
+
 movedDirection = "none"
 paddleBallCollision = 0
 ballBrickCollision = 0
+
+action = Action(movedDirection, paddleBallCollision, ballBrickCollision)
+
+#########################
+####     TO DO :     ####
+#### STATE -> ACTION ####
+####  -> STATE LOOP  ####
+#########################
+
+
+#  RENDER CURRENT STATE
+def renderState():
+    clock.tick(60)
+    coordinates = pygame.mouse.get_pos()  # gives (x,y) coordinates
+    if (coordinates[0] - state.paddle_width / 2) != state.paddle_x:
+        if (coordinates[0] - state.paddle_width / 2) < state.paddle_x:
+            action.movedDirection = "left"
+        else:
+            action.movedDirection = "right"
+
+    # sets the paddle_x variable to the first item in coordinates
+    state.paddle_x = coordinates[0] - state.paddle_width / 2
+    if state.paddle_x < 0:
+        state.paddle_x = 0
+    if state.paddle_x > screen.get_width() - state.paddle_width:
+        state.paddle_x = screen.get_width() - state.paddle_width
+
+    # make the screen completely white
+    screen.fill(black)
+
+    ball_rect = pygame.Rect(state.ball_x - state.ball_radius, state.ball_y - state.ball_radius, state.ball_radius * 2,
+                            state.ball_radius * 2)  # circles are measured from the center, so have to subtract 1 radius from the x and y
+    paddle_rect = pygame.Rect(state.paddle_x, state.paddle_y, state.paddle_width, state.paddle_height)
+    paddle_left_end_rec = pygame.Rect(state.paddle_x, state.paddle_y, 3, state.paddle_height)
+    paddle_right_end_rec = pygame.Rect((state.paddle_x + state.paddle_width) - 3, state.paddle_y, 3,
+                                       state.paddle_height)
+
+
+
+#  LOOK AT STATE, CREATE ACTION VARIABLE
+def updateAction(state):
+    pass
+
+#  CREATE NEW STATE BASED ON OLD STATE AND ACTION
+def newState(state):
+    state.ball_y = state.ball_y + state.ball_speed_y
+    state.ball_x = state.ball_x + state.ball_speed_x
+
+pygame.mouse.set_visible(False)
+
+
 while running:
     clock.tick(60)
     for event in pygame.event.get():
@@ -92,10 +143,6 @@ while running:
             if state.paddle_x > screen.get_width() - state.paddle_width:
                 state.paddle_x = screen.get_width() - state.paddle_width
 
-
-
-    #pause for 20 milliseconds
-    pygame.time.delay(20)
     #make the screen completely white
     screen.fill(black)
 
@@ -190,5 +237,5 @@ while running:
     action = Action(movedDirection, paddleBallCollision, ballBrickCollision)
     state.getBricksArray(brick_array)
     currState = state.stateSnapshot(action)
-    currState.pickle()
+    #currState.pickle()
 
