@@ -63,17 +63,10 @@ pygame.key.set_repeat(20, 20)
 clock = pygame.time.Clock()
 running = True
 
-action = Action("none", 0, 0, 0, 0)
-
 #  RENDER CURRENT STATE
 def renderState(state):
     clock.tick(60)
     for event in pygame.event.get():
-        # check if you've exited the game
-        if event.type == pygame.QUIT:
-            #state.writeEndSession()
-            running = False
-
         if event.type == pygame.MOUSEMOTION:
             coordinates = pygame.mouse.get_pos()  # gives (x,y) coordinates
             if (coordinates[0] - state.paddle_width / 2) != state.paddle_x:
@@ -144,7 +137,7 @@ def renderState(state):
     pygame.display.update()
 
 #  CREATE NEW STATE BASED ON OLD STATE AND ACTION
-def makeNewState(state):
+def makeNewState(state, action):
     new_state = state
     #new_state.setBricksArray(state.bricks_array)
     if action.movedDirection != "none":
@@ -329,5 +322,6 @@ while running:
 pygame.mouse.set_visible(False)
 #NEW GAME LOOP
 while running:
+    action = Action("none", 0, 0, 0, 0)
     renderState(state)
-    state = makeNewState(state)
+    state = makeNewState(state, action)
