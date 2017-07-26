@@ -81,6 +81,8 @@ def renderState(state):
                     action.movedDirection = "left"
                 else:
                     action.movedDirection = "right"
+            else:
+                action.movedDirection = "none"
             state.coordinates = coordinates
 
     # make the screen completely black
